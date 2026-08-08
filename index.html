@@ -1,0 +1,1312 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>능엄주 독송 · 감지금니</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=Gowun+Batang&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --indigo-deep:#10152a;
+    --indigo:#1a2140;
+    --indigo-panel:#202950;
+    --gold:#e8c15a;
+    --gold-bright:#f6d98a;
+    --ink-dim:#525e85;
+    --ink-mid:#8d97bd;
+    --line:#2c3560;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;}
+  @supports (height:100dvh){ html,body{height:100dvh;} }
+  body{position:fixed;inset:0;width:100%;}
+  body{
+    background:var(--indigo-deep);
+    color:var(--ink-mid);
+    font-family:'Gowun Batang','Noto Serif KR',serif;
+    display:flex;flex-direction:column;
+    overflow:hidden;
+  }
+
+  /* ── 상단 표제 ── */
+  header{
+    padding:14px 20px 10px;
+    text-align:center;
+    border-bottom:1px solid var(--line);
+    background:var(--indigo);
+    flex:0 0 auto;
+  }
+  header h1{
+    font-family:'Noto Serif KR',serif;
+    font-weight:700;
+    font-size:1.15rem;
+    letter-spacing:.5em;
+    text-indent:.5em;
+    color:var(--gold);
+  }
+  header p{font-size:.72rem;color:var(--ink-dim);letter-spacing:.25em;margin-top:4px;}
+
+  /* ── 경문 영역 ── */
+  #scroll{
+    flex:1 1 auto;
+    overflow-y:auto;
+    padding:9vh 6vw 40vh;
+    scroll-behavior:smooth;
+  }
+  #text{
+    max-width:680px;margin:0 auto;
+    font-size:var(--fs,2rem);
+    line-height:2.1;
+    letter-spacing:.06em;
+    word-break:keep-all;
+    text-align:center;
+    color:var(--ink-dim);
+    font-weight:400;
+  }
+  #text .ln{display:block;margin-bottom:.35em;}
+  #text .hd{
+    display:block;
+    font-family:'Noto Serif KR',serif;
+    font-size:.55em;
+    color:var(--gold);
+    letter-spacing:.3em;
+    border-bottom:1px solid var(--line);
+    padding-bottom:.5em;
+    margin:2.2em 0 1.2em;
+  }
+  #text .gap{display:block;height:.8em;}
+  #text .ln.reccur{
+    background:rgba(232,193,90,.08);
+    border-left:3px solid var(--gold);
+    padding-left:.4em;margin-left:-.4em;border-radius:4px;
+  }
+  #text .ln.recdone{opacity:.55;}
+
+  /* ── 싱크 녹화 바 ── */
+  #recBar{
+    display:none;flex:0 0 auto;
+    background:var(--indigo);border-top:1px solid var(--gold);
+    padding:12px 16px calc(14px + env(safe-area-inset-bottom));
+    text-align:center;
+  }
+  #recBar.open{display:block;}
+  #recBar .hint{font-size:.72rem;color:var(--ink-dim);margin-bottom:10px;letter-spacing:.05em;line-height:1.6;}
+  #recTap{
+    font-size:1.05rem;padding:16px 0;width:100%;max-width:420px;
+    background:var(--gold);color:#241c05;border:none;border-radius:12px;
+    font-weight:700;letter-spacing:.1em;cursor:pointer;font-family:inherit;
+  }
+  #recTap:active{transform:scale(.98);}
+  #recBar .sub{display:flex;gap:10px;justify-content:center;margin-top:10px;}
+  #syncBadge{font-size:.72rem;color:var(--gold);letter-spacing:.05em;}
+  #text .ch{transition:color .12s linear, text-shadow .3s;}
+  #text .ch.done{
+    color:var(--gold);
+    text-shadow:0 0 14px rgba(232,193,90,.28);
+  }
+  #text .ch.cur{
+    color:var(--gold-bright);
+    text-shadow:0 0 20px rgba(246,217,138,.55);
+  }
+
+  /* ── 제어부 ── */
+  #panel{
+    flex:0 0 auto;
+    background:var(--indigo);
+    border-top:1px solid var(--line);
+    padding:8px 14px calc(10px + env(safe-area-inset-bottom));
+  }
+  .row{display:flex;align-items:center;gap:8px;max-width:680px;margin:0 auto 7px;flex-wrap:wrap;justify-content:center;}
+  .row:last-child{margin-bottom:0;}
+
+  #bar{
+    width:100%;max-width:680px;margin:0 auto 9px;
+    height:3px;background:var(--line);border-radius:2px;cursor:pointer;position:relative;
+  }
+  #barFill{height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--gold-bright));border-radius:2px;}
+
+  button{
+    font-family:inherit;
+    background:transparent;
+    color:var(--ink-mid);
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:6px 13px;
+    font-size:.82rem;
+    cursor:pointer;
+    letter-spacing:.06em;
+    white-space:nowrap;
+  }
+  button:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
+  button.primary{
+    background:linear-gradient(180deg,var(--gold-bright),var(--gold));
+    color:#241c05;border-color:var(--gold);
+    font-weight:700;flex:1;max-width:220px;padding:8px 0;font-size:.95rem;
+    box-shadow:0 2px 10px rgba(232,193,90,.22);
+  }
+  button.on{color:var(--gold);border-color:var(--gold);}
+
+  label.small{font-size:.75rem;color:var(--ink-dim);display:flex;align-items:center;gap:6px;letter-spacing:.05em;}
+  input[type=range]{accent-color:var(--gold);width:110px;}
+  input[type=text]{
+    font-family:inherit;background:var(--indigo-panel);border:1px solid var(--line);
+    color:var(--ink-mid);border-radius:6px;padding:6px 8px;width:70px;font-size:.85rem;text-align:center;
+  }
+  #timeLabel{font-variant-numeric:tabular-nums;font-size:.76rem;color:var(--ink-dim);text-align:center;}
+  #more{
+    display:none;
+    position:fixed;left:0;right:0;bottom:0;z-index:20;
+    background:var(--indigo-panel);
+    border-top:1px solid var(--gold);
+    border-radius:16px 16px 0 0;
+    padding:16px 16px calc(20px + env(safe-area-inset-bottom));
+    box-shadow:0 -10px 40px rgba(0,0,0,.55);
+    max-height:70%;overflow-y:auto;
+  }
+  #more.open{display:block;}
+  #more .close{width:100%;max-width:680px;display:block;margin:0 auto 4px;}
+  #fileName{font-size:.72rem;color:var(--ink-dim);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+  /* ── 편집 모달 ── */
+  #editor{
+    position:fixed;inset:0;background:rgba(10,13,26,.92);
+    display:none;flex-direction:column;padding:20px;z-index:10;
+  }
+  #editor.open{display:flex;}
+  #editor h2{font-size:.95rem;color:var(--gold);letter-spacing:.2em;margin-bottom:10px;text-align:center;}
+  #editor textarea{
+    flex:1;background:var(--indigo);border:1px solid var(--line);border-radius:10px;
+    color:var(--ink-mid);font-family:inherit;font-size:1rem;line-height:1.9;
+    padding:16px;resize:none;letter-spacing:.05em;
+  }
+  #editor .row{margin-top:12px;}
+  #editor p.hint{font-size:.72rem;color:var(--ink-dim);text-align:center;margin-top:8px;line-height:1.7;}
+
+  /* ── 밝은 낮 테마 (백지금니) ── */
+  body.light{
+    --indigo-deep:#faf6ec;
+    --indigo:#f3ecdc;
+    --indigo-panel:#fbf7ee;
+    --gold:#a97f22;
+    --gold-bright:#c39a2f;
+    --ink-dim:#c2b79c;
+    --ink-mid:#6e6450;
+    --line:#e5dbc3;
+  }
+  body.light #text .ch.done{text-shadow:0 0 8px rgba(169,127,34,.18);}
+  body.light #text .ch.cur{color:#8a6318;text-shadow:0 0 10px rgba(169,127,34,.3);}
+  body.light #barFill{background:linear-gradient(90deg,#c39a2f,#a97f22);}
+
+  /* ── 달력 ── */
+  #calOverlay{
+    position:fixed;inset:0;background:rgba(10,13,26,.94);
+    display:none;flex-direction:column;align-items:center;
+    padding:24px 16px calc(24px + env(safe-area-inset-bottom));
+    overflow-y:auto;z-index:30;
+  }
+  body.light #calOverlay{background:rgba(245,238,225,.96);}
+  #calOverlay.open{display:flex;}
+  #calCard{width:100%;max-width:420px;}
+  #calHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+  #calHead h2{font-family:'Noto Serif KR',serif;color:var(--gold);font-size:1.05rem;letter-spacing:.15em;}
+  #calHead button{padding:8px 14px;}
+  #calGrid{
+    display:grid;grid-template-columns:repeat(7,1fr);gap:4px;
+    background:var(--indigo);border:1px solid var(--line);border-radius:12px;padding:12px 8px;
+  }
+  .dow{font-size:.7rem;color:var(--ink-dim);text-align:center;padding:4px 0;}
+  .dow.sun{color:#c97b7b;}
+  .day{
+    aspect-ratio:1;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:2px;
+    font-size:.82rem;color:var(--ink-mid);border-radius:8px;cursor:pointer;
+  }
+  .day.out{opacity:.22;}
+  .day.today{outline:1px solid var(--gold);}
+  .day.sel{background:var(--indigo-panel);outline:1px solid var(--gold-bright);}
+  .day .mark{
+    min-width:15px;height:15px;border-radius:50%;
+    font-size:.62rem;line-height:15px;text-align:center;
+    color:transparent;background:transparent;
+  }
+  .day.done{color:var(--gold-bright);}
+  .day.done .mark{
+    background:var(--gold);color:#241c05;font-weight:700;
+    box-shadow:0 0 8px rgba(232,193,90,.5);
+  }
+  #calStats{text-align:center;font-size:.8rem;color:var(--ink-dim);margin-top:14px;line-height:1.8;}
+  #calStats b{color:var(--gold);}
+  #calEdit{
+    display:none;margin-top:14px;
+    background:var(--indigo);border:1px solid var(--line);border-radius:12px;
+    padding:12px;text-align:center;align-items:center;justify-content:center;gap:14px;
+  }
+  #calEdit.open{display:flex;}
+  #calEdit span{font-size:.85rem;color:var(--ink-mid);}
+  #calEdit b{color:var(--gold);font-size:1.05rem;min-width:52px;}
+  #calEdit button{padding:6px 16px;font-size:1rem;}
+  #rangeBox{
+    margin-top:14px;background:var(--indigo);
+    border:1px solid var(--line);border-radius:12px;padding:12px;
+  }
+  #rangeBox .rrow{display:flex;gap:8px;justify-content:center;align-items:center;margin-bottom:8px;font-size:.8rem;color:var(--ink-dim);}
+  #rangeBox input[type=date]{
+    font-family:inherit;background:var(--indigo-panel);color:var(--ink-mid);
+    border:1px solid var(--line);border-radius:8px;padding:7px;font-size:.82rem;
+  }
+  #rgResult{font-size:.8rem;color:var(--ink-mid);text-align:center;line-height:1.9;}
+  #rgResult b{color:var(--gold);}
+  #calClose{margin-top:18px;width:100%;max-width:420px;}
+  #cntBadge{font-size:.72rem;color:var(--gold);letter-spacing:.05em;}
+  select{
+    font-family:inherit;background:var(--indigo-panel);color:var(--ink-mid);
+    border:1px solid var(--line);border-radius:8px;padding:8px;font-size:.85rem;
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    #scroll{scroll-behavior:auto;}
+    #text .ch{transition:none;}
+  }
+  @media (max-width:480px){
+    #text{font-size:calc(var(--fs,2rem) * .82);}
+    input[type=range]{width:80px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>수능엄신주</h1>
+  <p>白傘蓋陀羅尼 · 紺紙金泥</p>
+  <p style="letter-spacing:.06em;margin-top:6px;">− 음을 길게 &nbsp;·&nbsp; ~ 높낮이 있게 길게 &nbsp;·&nbsp; r 혀를 굴림 &nbsp;·&nbsp; . 끊어 읽기</p>
+</header>
+
+<div id="scroll"><div id="text"></div></div>
+
+<div id="panel">
+  <div id="bar"><div id="barFill"></div></div>
+
+  <div class="row">
+    <button id="btnRestart" title="처음으로">⟲ 처음</button>
+    <button id="btnPlay" class="primary">독송 시작</button>
+    <button id="btnLoop">반복</button>
+    <button id="btnMore">설정 ⚙</button>
+  </div>
+
+  <div class="row">
+    <span id="timeLabel">0:00 / 0:00</span>
+    <button id="btnCal">달력</button>
+    <span id="cntBadge"></span>
+    <span id="syncBadge"></span>
+  </div>
+</div>
+
+<div id="more">
+  <div class="row">
+    <button id="btnAudio">음원 불러오기</button>
+    <span id="fileName"></span>
+    <button id="btnSync" disabled>싱크 맞추기</button>
+  </div>
+
+  <div class="row">
+    <button id="btnSyncExport">싱크 내보내기</button>
+    <button id="btnSyncImport">싱크 가져오기</button>
+  </div>
+
+  <div class="row">
+    <label class="small">배속</label>
+    <button class="spd" data-r="0.75">0.75×</button>
+    <button class="spd on" data-r="1">1×</button>
+    <button class="spd" data-r="1.25">1.25×</button>
+    <button class="spd" data-r="1.5">1.5×</button>
+    <button class="spd" data-r="2">2×</button>
+  </div>
+
+  <div class="row">
+    <button id="btnWake">화면 켜짐 유지</button>
+    <label class="small">테마
+      <select id="themeSel">
+        <option value="night">감지금니 (밤)</option>
+        <option value="light">백지금니 (낮)</option>
+      </select>
+    </label>
+  </div>
+
+  <div class="row">
+    <label class="small">소요 시간
+      <input type="text" id="durInput" value="1:00" inputmode="numeric" title="분:초">
+    </label>
+    <label class="small">글자 크기
+      <input type="range" id="fontSize" min="1.2" max="3.4" step="0.1" value="2">
+    </label>
+    <button id="btnEdit">경문 편집</button>
+  </div>
+  <button class="close" id="moreClose">닫기</button>
+</div>
+
+<div id="recBar">
+  <p class="hint">음원을 들으시며, 표시된 줄의 <b>첫 음이 시작되는 순간</b> 버튼을 눌러 주세요. (스페이스바도 가능)</p>
+  <button id="recTap">이 줄 시작 ⏺</button>
+  <div class="sub">
+    <button id="recPause">⏸ 일시정지</button>
+    <button id="recUndo">한 줄 뒤로</button>
+    <button id="recDone">여기까지 저장</button>
+    <button id="recCancel">취소</button>
+  </div>
+</div>
+
+<div id="calOverlay">
+  <div id="calCard">
+    <div id="calHead">
+      <button id="calPrev">‹</button>
+      <h2 id="calTitle"></h2>
+      <button id="calNext">›</button>
+    </div>
+    <div id="calGrid"></div>
+    <div id="calStats"></div>
+    <div id="calEdit">
+      <span id="calEditDate"></span>
+      <button id="calMinus">−</button>
+      <b id="calEditCnt">0독</b>
+      <button id="calPlus">＋</button>
+    </div>
+    <div id="rangeBox">
+      <div class="rrow"><input type="date" id="rgFrom"> ~ <input type="date" id="rgTo"></div>
+      <div id="rgResult"></div>
+    </div>
+  </div>
+  <button id="calClose">닫기</button>
+</div>
+
+<input type="file" id="audioFile" accept="audio/*,video/mp4" hidden>
+<input type="file" id="syncFile" accept="application/json,.json" hidden>
+<audio id="audio" hidden></audio>
+
+<div id="editor">
+  <h2>경문 편집</h2>
+  <textarea id="editArea" spellcheck="false"></textarea>
+  <div class="row">
+    <button id="editCancel">취소</button>
+    <button id="editSave" class="primary">저장</button>
+  </div>
+  <p class="hint">평소 독송하시는 판본(전문 또는 심주)을 그대로 붙여 넣어 주세요.<br>줄바꿈은 그대로 유지됩니다.</p>
+</div>
+
+<script>
+/* ── 기본 경문: miracle_mantra.pdf 4~36쪽 전사본 ──
+   '#'로 시작하는 줄은 장 제목으로 표시되며 독송 진행에는 포함되지 않습니다. */
+const DEFAULT_TEXT = `# 백산개다라니 白傘蓋陀羅尼
+스타타가토 스니삼
+시타타 파트람
+아파라지탐
+프라튱기람 다라니
+
+# 제1회 비로진법회 毘盧眞法會
+나~~맣~~사르와 붇하 보-디 사퉤-뱧
+나맣 삮따-남~ 사먁삼붇하 꼬-띠-남-
+사슈라~바카 삼카-남
+나모- 로~께- 아르하땀
+나맣 스로~따- 판나-남
+나맣. 사크리따-가-미남
+나맣. 아나-가-미남
+나모- 로~께-사먁 가따~남
+사먁쁘라띠 판나-남
+나모- 데-바르씨남
+나맣. 싣다. 비댜-다-라르씨남
+쌰-빠-누그라하 사마르타-남
+나모- 브라흻마네
+나맣. 인드라-야
+나모- 바까바떼- 루드라-야
+우마~빠띠사 히~야-야-
+나모- 바까바떼- 나~라~야r나-야
+락쉬미 빰짜마하-무드라-
+나마 스크리따-야
+나모- 바까바떼- 마하-까-라-야
+트리뿌라나가라 비드라~빨나가라-야
+아디묵따까 스마샤-나봐-씨네-
+마~뜨리가r나 나맣스크리따-야
+나모- 바까바떼- 탙하-가따 꿀라-야
+나모- 바까바떼- 파뜨마.꿀라-야
+나모- 바까바떼- 와즈라꿀라-야
+나모- 바까바떼- 마r니꿀라-야
+나모- 바까바떼- 간짜꿀라-야
+나모- 바까바떼- 글다슈~라-쎼-나
+프라하얼나라~자~야
+탙하-가따-야~아르하떼- 사먁삼붇하-야
+나모- 바까바떼- 아미타-바-야-
+탙하-가따-야~아르하떼- 사먁삼붇하-야
+나모- 바까바떼- 악쇼-비야-야
+탙하-가따-야~아르하떼- 사먁삼붇하-야
+나모- 바까바떼- 바이-사이쟈구루와이
+-류-랴 프라허라~자~야
+탙하-가따-야~아르하떼- 사먁삼붇하-야
+나모- 바까바떼-
+삼푸스삐따사~렌- 드라라-자-야
+탙하-가따-야~아르하떼- 사먁삼붇하-야
+나모- 바까바떼- 샤~꺄무나예
+탙하-가따-야~아르하떼- 사먁삼붇하-야
+나모- 바까바떼- 라트나꾸수마
+께~뚜라-자~야 탙하-가따-
+야~아르하떼- 사먁삼붇하-야
+떼-샴- 나.마 스크리쁘와 이맘~
+바까바타 스탙하-가또-스니~샴
+시따-따빠뜨람 나마-빠라-지땀
+쁘라땽-기람
+사르와 부-따그라하 니그라하 가라r님
+빠라삐땨- 체-다님
+아까-라 므르뜌 빠리뜨라-나까림-
+사르와 반다나 목~챠님-
+사르와 두스타 두쌉나니- 바r~라r~님
+짜뚜라시-띠-남- 그라하사하스라r~남-
+븨드밤사나까림-
+아스쨔-빔 샤띠남- 낙챠뜨라r~남-
+부르싸-다나카림-
+아스쨔-남- 마하-그라하r~남-
+븨드밤사나카림-
+사르와 샤뜨루-니바-라r-님
+고-람 둡쌉나-남~차 나-샤님
+비사샤스뜨라 아그니 우따라r님
+아빠라- 지땀-
+마하- 고-람
+마하- 발람-
+마하- 좔담-
+마하- 딥-땀.
+마하- 떼-잠.
+마하- 스웨-땀-
+마하- 좔람.
+마하- 발라-
+빠r-다라봐-시님-
+아-랴타-라- 브리꾸띰- 쩨-바 비자야
+와즈라 말레~티 비스루땀.
+빠드맘깜 와즈라 지흐바차
+말~라~체-바 빠라-지따
+와즈라- 단r딤- 비샤-라~차
+샨타 바-이데-와-뿌-지땀.
+사-먀루-빰 마하-스웨-따
+아-랴따-라- 마하-발라 아빠라-
+와즈라 샹깔라-체-바-
+와즈라 까우-마-리 쿠란다리
+와즈라 하스따-차 마하-비댜-
+깜-차나마-리까
+꾸숨바-라트나 쩨-바 바이-로-쨔나-
+쿨라-타담- 우쉬니-샤
+비즈름 바마-나-차 사바즈라까나까
+쁘라바로~짜나
+와즈라- 뚠r디-차 스웨-타-차
+카마랔-시- 샤시-프라바
+이뗴-떼- 무드라-가r나- 사르베-랔챰
+꾸르완투 마마 사르와 사뜨와 남~챠~
+
+# 제2회 석존응화회 釋尊應化會
+옴~~ 리씨가나 프라샤-스따야-
+사르와 탙하-가또-스니-샤-야-
+후움~ 트르룸~
+짬바나까라 후움~ 트르룸~
+스땀바나까라 후움~ 트르룸~
+모~하나가라 후움~ 트르룸~
+맏하나카라 후움~ 트르룸~
+파라비땨- 삼뱍챠나카라 후움~ 트르룸~
+사르와 두스쨔-남~ 스땀바나까라
+후움~ 트르룸~
+사르와 약챠 랔~챠싸그라하r-남~
+븨드밤사나까라 후움~ 트르룸~
+짜뚜라시-띠-남~ 그라하사하스라r~남~
+븨드밤사나까라 후움~ 트르룸~
+아스쨔-빔샤띠-남~ 낙챠 뜨라-남~
+쁘라사~다나까라 후움~ 트르룸~
+아스쨔-남- 마하-그라하r-남-
+우트싸-다나카라 후움~ 트르룸~
+랔챠랔챠 맘
+바까밤 스탙하-가또-스니-샤.
+시따-따빠뜨라 마하- 와즈로-스니-샤
+마하- 프라땽기레-
+마하- 사하스라부제- 사하스라시르-세-
+꼬-띠-샤따-사하스라네-트레
+아베-랴 즈와리따~다다r카
+마하- 와즈로-다-라
+트리푸와나 만r다r라
+옴- 스바스티르 바바투- 맘~ 마-마~~
+
+# 제3회 관음합동회 觀音合同會
+라~~자 바야-
+쵸-라 바야-
+우다카 바야-
+아그니 바야-
+비사 바야-
+샤스트라 바야-
+파라차크라 바야-
+두르빅챠 바야-
+아샤니 바야-
+아까-라므르뜌 바야-
+다라r니-부-미 깜빠- 바야-
+우r까-빠-다 바야-
+라-자단r다 바야-
+수쁘라r니 바야-
+나-가 바야-
+비뜢. 바야-
+데-봐 그라하-
+나-가 그라하-
+약챠 그라하-
+랔~챠싸 그라하-
+쁘레-따 그라하-
+삐쌰-쨔 그라하-
+부~따 그라하-
+꿈반r다 그라하-
+뿌~딴나 그라하-
+가짜뿌~딴나 그라하-
+스깐다 그라하-
+아빠스마-라 그라하-
+우드마-다 그라하-
+차-야 그라하-
+레-바띠 그라하-
+쟈미카 그라하-
+깐타r까미니 그라하-
+오-자- 하-린야
+가르바- 하-린야
+쨔-따- 하-린야
+찌-비따- 하-린야
+루디라- 하-린야
+봐싸- 하-린야
+맘-사- 하-린야
+메-다- 하-린야
+마쨔- 하-린야
+봔-따- 하-린야
+아수쨔- 하-린야
+찌쨔- 하-린야
+떼-샴-사르베-샴~ 사르와 그라하r-남~
+븨띠얌- 친다야-미 낄-라야-미
+빠리브라자-카 크리땀- 븨띠얌-
+친다야-미 낄-라야-미
+다-카r다-끼니 크리땀- 븨띠얌-
+친다야-미 낄-라야-미
+마하- 빠슈빠띠 루드라 크리땀- 븨띠얌-
+친다야-미 낄-라야-미
+나-라-야r나- 빰쨔마하- 무드라-
+크리땀- 븨띠얌- 친다야-미 낄-라야-미
+따뜨와 가루다사히-야~야- 크리땀-
+븨띠얌- 친다야-미 낄-라야-미
+마하-까-라 마-뜨리가r나 사히-야-야
+크리땀- 븨띠얌- 친다야-미 낄-라야-미
+까-빠-리까 크리땀- 븨띠얌- 친다야-미-
+낄-라야-미
+자야카라- 마두카라- 사르와-르타
+싸-다까 크리땀- 븨띠얌- 친다야-미
+낄-라야-미
+차뚜르바기니- 브라뜨리빰짜마
+사히~야-야 크리땀- 븨띠얌-
+친다야-미 낄-라야-미
+브링기리띠까 난디께-슈와라
+가r나빠띠사히-야 크리땀- 븨띠얌-
+친다야-미 낄-라야-미
+나그나슈라마r나 크리땀- 븨띠얌-
+친다야-미 낄-라야-미
+아르한따 크리땀- 븨띠얌- 친다야-미
+낄-라야-미
+비-따라-가 크리땀- 븨띠얌- 친다야-미
+낄-라야-미
+와즈라빠r~니 구햐까-히빠띠 크리땀-
+븨띠얌- 친다야-미 낄-라야-미
+랔챠- 랔챠- 맘~~
+
+# 제4회 강장절섭회 剛藏折攝會
+바--가바타 스탙하-가또-스니-샴
+시따-따 빠뜨람 나모- 스뚜떼-
+아시따- 날라~카 프라바스뿌따
+비카 시따-따 빠뜨레
+좔라 좔라 다카 다카 븨다카 븨다카
+다라 다라 븨다라 븨다라
+친다 친다 빈다 빈다
+후움~ 후움~ 팥. 팥. 스와-하
+헤-헤- 팥.
+아모-가 팥.
+아쁘라띠하따 팥.
+와라프라다 팥.
+아수라 비드라-파까 팥.
+사르와 데-베-뱧 팥.
+사르와 나-게-뱧 팥.
+사르와 약쉐-뱧 팥.
+사르와 랔~챠쎄-뱧 팥.
+사르와 가루데-뱧 팥.
+사르와 간-다르베-뱧 팥.
+사르와 아수레-뱧 팥.
+사르와 킨다레-뱧 팥.
+사르와 마호~라게-뱧 팥.
+사르와 마누쎼-뱧 팥.
+사르와 아마누쎼-뱧 팥.
+사르와 부~떼-뱧 팥.
+사르와 삐쌰-쩨-뱧 팥.
+사르와 꿈반r데-뱧 팥.
+사르와 뿌~따네-뱧 팥.
+사르와 가쨔 뿌~따네-뱧 팥.
+사르와 두르람기떼-뱧 팥.
+사르와 두스프렉-시떼-뱧 팥.
+사르와 좌레-뱧 팥.
+사르와 아빠스마-레-뱧 팥.
+사르와 슈라마r네-뱧 팥.
+사르와 뜨르디께~ 뱧 팥.
+사르와 우드마~데-뱧 팥.
+사르와 비땨-라-쟈- 챠-례-뱧 팥.
+자야카라- 마두카라 사르와-르타
+사-다께-뱧 팥.
+사르와 비땨-차-례-뱧 팥.
+쨔뚜르 바기니-뱧 팥.
+와즈라 까우-마-리 쿠란다리-
+마하- 비땨-라-제-뱧 팥.
+마하- 쁘라땽기레-뱧 팥.
+와즈라 샹깔라-야 팥.
+마하- 쁘라땽기라 라~자~야 팥.
+마하-까-라-야 마하- 마-트리가r나
+나마스크리따-야 팥.
+베-스누비-예- 팥.
+브라흻니-예- 팥.
+아그니-예- 팥.
+마하-까-리-예- 팥.
+까r-라단r디-예- 팥.
+인드리-예- 팥.
+라우-드리-예- 팥.
+쨔-문r디-예- 팥.
+깔-라 라-트리-예- 팥.
+까-빠-리-예- 팥.
+아디묵따까스마샤-나 바-시니-예- 팥.
+예-께-찥따 사뜨와 마~마~~
+
+# 제5회 문수홍전회 文殊弘傳會
+두~~스따 찥따
+빠-빠 찥따
+라우-드라 찥따
+비뒈-샤 아마-이뜨라 찥따
+우뜨빠-다얀띠
+낄-라얀띠
+만트라얀띠
+자반띠
+쥬반띠
+오-자- 하-라-
+가르바- 하-라-
+루디라- 하-라-
+바싸- 하-라-
+마자- 하-라-
+자-따- 하-라-
+찌-비따- 하-라-
+마랴- 하-라-
+간다- 하-라-
+뿌스빠- 하-라-
+프할라- 하-라-
+싸쓰야- 하-라-
+빠-빠 찥따
+두스따 찥따
+라우-드라 찥따
+약챠 그라하
+랔~챠싸 그라하
+쁘레~따 그라하
+삐쌰-짜 그라하
+부~따 그라하
+꿈반r다 그라하
+스깐다 그라하
+우드마~다 그라하
+차-야 그라하
+아빠스마~라 그라하
+다r-카r다r-끼니- 그라하
+레-봐띠 그라하
+자미카 그라하
+샤꾸니 그라하
+만트라 난디카 그라하
+람비카 그라하
+하r누 칸타빠r~니 그라하
+즈와라 에-카-히까-
+뜨와-이띠-야까-
+스라이 띠-야까-
+차뚜르다카
+니땨 즈와라-
+비사마즈와라-
+봐-띠까-
+빠-이띠까-
+슈레-스미까-
+싼디빠띠까-
+사르와 즈와라
+시로르띠 아르다바베~다카 아로~짜까
+앜찌 로~감
+나싸 로~감
+무카 로~감
+흐리.드 로~감
+갈라 그라함
+까르나 슐-람
+단다 슐-람
+흐리.다.야. 슐-람
+마르마 슐-람
+파라슈와 슐-람
+프르스타 슐-람
+우다라 슐-람
+칸티- 슐-람
+와스티 슐-람
+우-루 슐-람
+잠-가 슐-람
+하스타 슐-람
+빠-다 슐-람
+사르왕-가프라땽-가 슐-람
+부-따 베-따r-다다r-카다r-키니 즈와라
+다드루 깐r-듀끼티 바로~따바이
+사르빠로-하-링가
+슈-샤뜨라사가라 비사요-가
+아그니 우다카 마라 바이~라 깐~따-라
+아까-라므르뜌
+트라-이부카 트라-이라쨔까 브르스찌까
+사르빠나꾸라
+씸카 뱌-그라랔챠 다랔챠 메르가
+스와파라지-와 데~샴- 사르베-샴~
+시따-따빠뜨람 마하-와즈로오스니-샴
+마하-프라땽기람
+야-와뜨와-다샤요-쟈나- 뱐타레-나
+씨~마- 반담 까로~미
+디샤- 반담 까로~미
+빠-라비땨- 반담 까로~미
+떼-조- 반담 까로~미
+하스따 반담 까로~미
+빠-다 반담 까로~미
+사르왕-가 프라땽가 반담 까로~미
+따댣하- 옴~ 아나레- 아나레-
+븨쌰데- 븨쌰데-
+븨-라 와즈라 다레- 반다 반다니
+와즈라 파r니 팥.
+후움~ 트르룸~ 팥. 스와-하-
+나마 스탙하-가따-야
+수가따-야~아르하떼- 사먁삼붇하-야
+싣디얀투 만트라파다- 스와~하~~`;
+
+const $ = id => document.getElementById(id);
+const textEl=$('text'), scrollEl=$('scroll'), audio=$('audio');
+const btnPlay=$('btnPlay'), btnLoop=$('btnLoop'), barFill=$('barFill');
+let chars=[];            // span 목록 (공백 제외)
+let lines=[];            // 독송 대상 줄: {el, startChar, count}
+let mantra=DEFAULT_TEXT;
+let playing=false, loop=false;
+let useAudio=false;
+let manualT=0, manualDur=60, lastFrame=0;
+let curIdx=-1;
+let rate=1;
+let sync=null;           // {name, times[]} 줄별 시작 시각(초)
+let recMode=false, recIdx=0, recTimes=[];
+
+/* ── 경문 렌더 ── */
+function render(){
+  textEl.innerHTML=''; chars=[]; lines=[];
+  mantra.split('\n').forEach(line=>{
+    if(line.trim()===''){
+      const g=document.createElement('span'); g.className='gap';
+      textEl.appendChild(g); return;
+    }
+    if(line.trimStart().startsWith('#')){
+      const h=document.createElement('span'); h.className='hd';
+      h.textContent=line.replace(/^\s*#+\s*/,'');
+      textEl.appendChild(h); return;
+    }
+    const ln=document.createElement('span'); ln.className='ln';
+    const startChar=chars.length;
+    for(const c of line){
+      if(c===' '){ ln.appendChild(document.createTextNode(' ')); continue; }
+      const s=document.createElement('span'); s.className='ch'; s.textContent=c;
+      ln.appendChild(s); chars.push(s);
+    }
+    textEl.appendChild(ln);
+    if(chars.length>startChar) lines.push({el:ln,startChar,count:chars.length-startChar});
+  });
+  curIdx=-1; paint(0);
+}
+
+/* ── 진행률(0~1) → 글자 색칠 ── */
+function paint(p){
+  const n=chars.length; if(!n) return;
+  const f=Math.min(Math.max(p,0),1)*n;
+  const idx=Math.min(Math.floor(f), n-1);
+  if(idx!==curIdx){
+    if(idx>curIdx){
+      for(let i=Math.max(curIdx,0); i<idx; i++){ chars[i].classList.add('done'); chars[i].classList.remove('cur'); }
+    }else{
+      for(let i=idx; i<=Math.min(curIdx,n-1); i++){ chars[i].classList.remove('done','cur'); }
+    }
+    if(curIdx>=0 && curIdx<n) chars[curIdx].classList.remove('cur');
+    if(p>0 && p<1){
+      chars[idx].classList.add('cur');
+      const r=chars[idx].getBoundingClientRect(), sr=scrollEl.getBoundingClientRect();
+      if(r.top<sr.top+sr.height*.25||r.bottom>sr.top+sr.height*.6)
+        chars[idx].scrollIntoView({block:'center'});
+    }
+    if(p>=1){ chars[n-1].classList.add('done'); chars[n-1].classList.remove('cur'); }
+    curIdx=idx;
+  }
+  barFill.style.width=(p*100)+'%';
+}
+
+/* ── 시간 표기 ── */
+const fmt=t=>{t=Math.max(0,Math.floor(t));return Math.floor(t/60)+':'+String(t%60).padStart(2,'0');};
+function dur(){ return useAudio ? (audio.duration||0) : manualDur; }
+function pos(){ return useAudio ? audio.currentTime : manualT; }
+function updateTime(){ $('timeLabel').textContent = fmt(pos())+' / '+fmt(dur()); }
+
+/* ── 시간(초) → 진행률(0~1): 싱크가 있으면 줄별 시각 기준 ──
+   부분 싱크(done<전체)면 미기록 구간은 글자 수 비례로 자동 배분 */
+let effCache=null, effKey='';
+function getEff(){
+  if(!sync) return null;
+  const done=sync.done ?? sync.times.length;
+  const d=dur();
+  const key=done+':'+sync.times.length+':'+d.toFixed(1);
+  if(effKey===key) return effCache;
+  const T=new Array(lines.length);
+  for(let i=0;i<done && i<lines.length;i++) T[i]=sync.times[i];
+  if(done<lines.length){
+    const t0=done>0? sync.times[done-1] : 0;
+    const sc=lines[done]?lines[done].startChar:chars.length;
+    const remainChars=Math.max(chars.length-sc,1);
+    const remainTime=Math.max(d-t0-1,1);
+    for(let i=done;i<lines.length;i++)
+      T[i]=t0+1+((lines[i].startChar-sc)/remainChars)*remainTime;
+  }
+  effCache=T; effKey=key;
+  return T;
+}
+function progFromTime(t){
+  const d=dur(); if(!d) return 0;
+  if(!(useAudio && sync && sync.times.length)) return t/d;
+  const T=getEff(), n=lines.length;
+  if(t<=T[0]) return 0;
+  let li=0;
+  for(let i=n-1;i>=0;i--){ if(T[i]!=null && T[i]<=t){ li=i; break; } }
+  const start=T[li];
+  const end=(li+1<n && T[li+1]!=null)? T[li+1] : d;
+  const frac=Math.min((t-start)/Math.max(end-start,.05),1);
+  const cp=lines[li].startChar + frac*lines[li].count;
+  return Math.min(cp/chars.length,1);
+}
+
+/* ── 재생 루프 ── */
+function tick(ts){
+  if(!playing) return;
+  if(!useAudio){
+    if(lastFrame) manualT += (ts-lastFrame)/1000*rate;
+    lastFrame=ts;
+    if(manualT>=manualDur){
+      countRead();
+      if(loop){ manualT=0; paint(0); }
+      else { manualT=manualDur; stop(true); }
+    }
+  }else if(audio.ended){
+    countRead();
+    if(loop){ audio.currentTime=0; audio.play(); }
+    else { stop(true); }
+  }
+  paint(progFromTime(pos()));
+  updateTime();
+  if(playing) requestAnimationFrame(tick);
+}
+function start(){
+  playing=true; lastFrame=0;
+  btnPlay.textContent='잠시 멈춤';
+  if(useAudio) audio.play();
+  if(setg.wake) holdWake(true);
+  requestAnimationFrame(tick);
+}
+function stop(finished){
+  playing=false; btnPlay.textContent= finished ? '다시 독송' : '독송 계속';
+  if(useAudio) audio.pause();
+  holdWake(false);
+}
+btnPlay.onclick=()=>{
+  if(playing){ stop(false); return; }
+  if(pos()>=dur()-.05){ if(useAudio) audio.currentTime=0; else manualT=0; paint(0); }
+  start();
+};
+$('btnRestart').onclick=()=>{
+  if(useAudio) audio.currentTime=0; else manualT=0;
+  paint(0); updateTime();
+  scrollEl.scrollTo({top:0});
+  if(!playing) btnPlay.textContent='독송 시작';
+};
+btnLoop.onclick=()=>{ loop=!loop; btnLoop.classList.toggle('on',loop); };
+$('btnMore').onclick=()=>{
+  const o=$('more').classList.toggle('open');
+  $('btnMore').classList.toggle('on',o);
+};
+$('moreClose').onclick=()=>{ $('more').classList.remove('open'); $('btnMore').classList.remove('on'); };
+function closeMore(){ $('more').classList.remove('open'); $('btnMore').classList.remove('on'); }
+
+/* ── 배속 ── */
+document.querySelectorAll('.spd').forEach(b=>{
+  b.onclick=()=>{
+    rate=parseFloat(b.dataset.r);
+    audio.playbackRate=rate;
+    document.querySelectorAll('.spd').forEach(x=>x.classList.toggle('on',x===b));
+  };
+});
+audio.addEventListener('play',()=>{ audio.playbackRate=rate; });
+
+/* ── 진행 막대 탐색 ── */
+$('bar').addEventListener('pointerdown',e=>{
+  const r=e.currentTarget.getBoundingClientRect();
+  const p=Math.min(Math.max((e.clientX-r.left)/r.width,0),1);
+  if(useAudio && audio.duration) audio.currentTime=p*audio.duration;
+  else manualT=p*manualDur;
+  paint(progFromTime(pos())); updateTime();
+});
+
+/* ── 음원 (IndexedDB에 저장하여 다음에 자동 복원) ── */
+function idbOpen(){
+  return new Promise((res,rej)=>{
+    const r=indexedDB.open('surangama-db',1);
+    r.onupgradeneeded=()=>r.result.createObjectStore('kv');
+    r.onsuccess=()=>res(r.result);
+    r.onerror=()=>rej(r.error);
+  });
+}
+async function idbSet(k,v){
+  try{ const db=await idbOpen();
+    return new Promise(res=>{
+      const tx=db.transaction('kv','readwrite');
+      tx.objectStore('kv').put(v,k);
+      tx.oncomplete=()=>res(true); tx.onerror=()=>res(false);
+    });
+  }catch(e){ return false; }
+}
+async function idbGet(k){
+  try{ const db=await idbOpen();
+    return new Promise(res=>{
+      const rq=db.transaction('kv').objectStore('kv').get(k);
+      rq.onsuccess=()=>res(rq.result??null); rq.onerror=()=>res(null);
+    });
+  }catch(e){ return null; }
+}
+function applyAudio(name,src){
+  audio.src=src;
+  useAudio=true;
+  $('fileName').textContent=name;
+  $('btnSync').disabled=false;
+  audio.onloadedmetadata=()=>{ $('durInput').value=fmt(audio.duration); updateTime(); };
+  stop(false); paint(0);
+  btnPlay.textContent='독송 시작';
+  loadSync(name);
+}
+$('btnAudio').onclick=()=>$('audioFile').click();
+$('audioFile').onchange=async e=>{
+  const f=e.target.files[0]; if(!f) return;
+  applyAudio(f.name, URL.createObjectURL(f));
+  const ok=await idbSet('audio',{name:f.name, blob:f});
+  if(ok) $('fileName').textContent=f.name+' 💾';
+};
+async function restoreAudio(){
+  const saved=await idbGet('audio');
+  if(saved && saved.blob){
+    applyAudio(saved.name+' 💾', URL.createObjectURL(saved.blob));
+  }
+}
+
+/* ── 싱크 저장/불러오기 (Claude 환경: window.storage / 일반 브라우저: localStorage) ── */
+async function kvSet(k,v){
+  try{ if(window.storage){ await window.storage.set(k,v); return true; } }catch(e){}
+  try{ localStorage.setItem(k,v); return true; }catch(e){}
+  return false;
+}
+async function kvGet(k){
+  try{ if(window.storage){ const r=await window.storage.get(k); if(r&&r.value!=null) return r.value; } }catch(e){}
+  try{ return localStorage.getItem(k); }catch(e){}
+  return null;
+}
+async function saveSync(silent){
+  const ok=await kvSet('surangama-sync-v1',
+    JSON.stringify({name:sync.name,count:lines.length,times:sync.times,done:sync.done}));
+  effKey='';
+  if(!ok && !silent) alert('이 브라우저에서는 자동 저장이 되지 않습니다.\n[싱크 내보내기]로 파일을 보관해 주세요.');
+}
+async function loadSync(name){
+  sync=null; effKey=''; setBadge();
+  try{
+    const v=await kvGet('surangama-sync-v1');
+    if(v){
+      const d=JSON.parse(v);
+      if(d.count===lines.length){ sync={name:d.name,times:d.times,done:d.done??d.times.length}; }
+    }
+  }catch(e){}
+  setBadge();
+}
+/* ── 싱크 파일 내보내기/가져오기 ── */
+$('btnSyncExport').onclick=()=>{
+  if(!sync){ alert('내보낼 싱크 기록이 없습니다.'); return; }
+  const blob=new Blob([JSON.stringify({name:sync.name,count:lines.length,times:sync.times,done:sync.done})],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download='능엄주_싱크.json'; a.click();
+  URL.revokeObjectURL(a.href);
+};
+$('btnSyncImport').onclick=()=>$('syncFile').click();
+$('syncFile').onchange=e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const d=JSON.parse(r.result);
+      if(!Array.isArray(d.times)) throw 0;
+      if(d.count!==lines.length){ alert('경문 줄 수가 달라 적용할 수 없습니다.\n(싱크를 만들 때의 경문과 같아야 합니다.)'); return; }
+      sync={name:d.name,times:d.times,done:d.done??d.times.length}; effKey=''; setBadge();
+      kvSet('surangama-sync-v1',JSON.stringify({name:d.name,count:d.count,times:d.times,done:sync.done}));
+      alert('싱크를 불러왔습니다.');
+    }catch(err){ alert('싱크 파일을 읽을 수 없습니다.'); }
+  };
+  r.readAsText(f);
+  e.target.value='';
+};
+function setBadge(){
+  if(!sync){ $('syncBadge').textContent=''; return; }
+  const done=sync.done ?? sync.times.length;
+  $('syncBadge').textContent = done>=lines.length
+    ? '✓ 싱크 적용됨'
+    : '✓ 싱크 '+done+' / '+lines.length+'줄 (이어서 가능)';
+}
+
+/* ── 싱크 녹화 모드 ── */
+function recHighlight(){
+  lines.forEach((l,i)=>{
+    l.el.classList.toggle('reccur', i===recIdx);
+    l.el.classList.toggle('recdone', i<recIdx);
+  });
+  if(lines[recIdx]) lines[recIdx].el.scrollIntoView({block:'center'});
+}
+function recStart(resume){
+  if(!useAudio || !audio.duration) return;
+  stop(false);
+  recMode=true;
+  if(resume && sync){
+    recIdx=Math.min(sync.done??0, lines.length-1);
+    recTimes=sync.times.slice(0,recIdx);
+    audio.currentTime = recIdx>0 ? Math.max(recTimes[recIdx-1]-2,0) : 0;
+  }else{
+    recIdx=0; recTimes=[];
+    audio.currentTime=0;
+  }
+  $('panel').style.display='none'; $('recBar').classList.add('open');
+  chars.forEach(c=>c.classList.remove('done','cur')); curIdx=-1;
+  $('recPause').textContent='⏸ 일시정지';
+  audio.play();
+  recHighlight();
+}
+function recExit(){
+  recMode=false; audio.pause();
+  $('panel').style.display=''; $('recBar').classList.remove('open');
+  lines.forEach(l=>l.el.classList.remove('reccur','recdone'));
+  audio.currentTime=0; paint(0); updateTime(); btnPlay.textContent='독송 시작';
+}
+function savePartial(){
+  sync={name:$('fileName').textContent, times:recTimes.slice(), done:recTimes.length};
+  saveSync(true); setBadge();
+}
+function recFinish(){
+  if(recTimes.length) savePartial();
+  recExit();
+}
+$('btnSync').onclick=()=>{
+  closeMore();
+  const done=sync? (sync.done??sync.times.length) : 0;
+  if(sync && done>0 && done<lines.length){
+    if(confirm('지난번에 '+done+'번째 줄까지 맞추셨습니다.\n\n[확인] 이어서 맞추기\n[취소] 처음부터 다시')){
+      recStart(true); return;
+    }
+  }
+  recStart(false);
+};
+$('recPause').onclick=()=>{
+  if(!recMode) return;
+  if(audio.paused){ audio.play(); $('recPause').textContent='⏸ 일시정지'; }
+  else { audio.pause(); $('recPause').textContent='▶ 계속'; }
+};
+$('recTap').onclick=()=>{
+  if(!recMode || audio.paused) return;
+  recTimes[recIdx]=audio.currentTime;
+  recIdx++;
+  savePartial();          /* 탭할 때마다 자동 저장 */
+  if(recIdx>=lines.length){ recFinish(); return; }
+  recHighlight();
+};
+$('recUndo').onclick=()=>{
+  if(!recMode||recIdx===0) return;
+  recIdx--; recTimes.length=recIdx;
+  savePartial();
+  audio.currentTime=Math.max((recTimes[recIdx-1]??0)-1,0);
+  recHighlight();
+};
+$('recDone').onclick=recFinish;
+$('recCancel').onclick=recExit;
+document.addEventListener('keydown',e=>{
+  if(recMode && e.code==='Space'){ e.preventDefault(); $('recTap').click(); }
+});
+
+/* ── 수동 소요 시간(분:초) ── */
+$('durInput').onchange=e=>{
+  const m=e.target.value.trim().match(/^(\d+)(?::([0-5]?\d))?$/);
+  if(m){ manualDur=(+m[1])*60+(+(m[2]||0)); if(!m[2]&&+m[1]<10) manualDur=+m[1]*60; }
+  if(manualDur<5) manualDur=5;
+  useAudio=false; audio.removeAttribute('src'); $('fileName').textContent='';
+  $('btnSync').disabled=true; sync=null; setBadge();
+  manualT=0; paint(0); updateTime(); stop(false); btnPlay.textContent='독송 시작';
+};
+
+/* ── 글자 크기 ── */
+$('fontSize').oninput=e=>textEl.style.setProperty('--fs',e.target.value+'rem');
+
+/* ── 경문 편집 ── */
+$('btnEdit').onclick=()=>{ closeMore(); $('editArea').value=mantra; $('editor').classList.add('open'); };
+$('editCancel').onclick=()=>$('editor').classList.remove('open');
+$('editSave').onclick=()=>{
+  const v=$('editArea').value.trim();
+  if(v){ mantra=v; render(); sync=null; setBadge(); manualT=0; if(useAudio) audio.currentTime=0; updateTime(); stop(false); btnPlay.textContent='독송 시작'; }
+  $('editor').classList.remove('open');
+};
+
+/* ═══ 설정(화면 켜짐·테마) ═══ */
+let setg={wake:true, theme:'night'};
+let wakeLock=null, nsVideo=null;
+function nsVid(){
+  /* https가 아닐 때(파일로 열 때)를 위한 폴백: 보이지 않는 초소형 영상 재생으로 화면 유지 시도 */
+  if(nsVideo) return nsVideo;
+  const v=document.createElement('video');
+  v.setAttribute('playsinline','');
+  v.muted=true; v.loop=true;
+  v.style.cssText='position:fixed;left:-2px;top:-2px;width:1px;height:1px;opacity:0.01;pointer-events:none;';
+  v.src='data:video/mp4;base64,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';
+  document.body.appendChild(v);
+  nsVideo=v; return v;
+}
+async function holdWake(on){
+  try{
+    if(on){
+      if('wakeLock' in navigator){
+        if(!wakeLock) wakeLock=await navigator.wakeLock.request('screen');
+      }else{
+        nsVid().play().catch(()=>{});
+      }
+    }else{
+      if(wakeLock){ await wakeLock.release(); wakeLock=null; }
+      if(nsVideo) nsVideo.pause();
+    }
+  }catch(e){
+    try{ nsVid().play().catch(()=>{}); }catch(e2){}
+  }
+}
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible' && playing && setg.wake) holdWake(true);
+});
+function applySet(){
+  document.body.classList.toggle('light', setg.theme==='light');
+  $('themeSel').value=setg.theme;
+  const b=$('btnWake');
+  b.style.color=setg.wake?'var(--gold)':'';
+  b.style.borderColor=setg.wake?'var(--gold)':'';
+}
+async function saveSet(){ await kvSet('surangama-set-v1',JSON.stringify(setg)); }
+async function loadSet(){
+  try{ const v=await kvGet('surangama-set-v1'); if(v) Object.assign(setg,JSON.parse(v)); }catch(e){}
+  applySet();
+}
+$('btnWake').onclick=()=>{
+  setg.wake=!setg.wake; saveSet(); applySet();
+  if(!setg.wake) holdWake(false); else if(playing) holdWake(true);
+};
+$('themeSel').onchange=e=>{ setg.theme=e.target.value; saveSet(); applySet(); };
+
+/* ═══ 독송 기록 ═══ */
+let rlog={};   /* {'YYYY-MM-DD': 독수} */
+function ymd(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+async function loadLog(){
+  try{ const v=await kvGet('surangama-log-v1'); if(v) rlog=JSON.parse(v)||{}; }catch(e){}
+  updateCnt();
+}
+async function countRead(){
+  const t=ymd(new Date());
+  rlog[t]=(rlog[t]||0)+1;
+  await kvSet('surangama-log-v1',JSON.stringify(rlog));
+  updateCnt();
+}
+function updateCnt(){
+  const c=rlog[ymd(new Date())]||0;
+  $('cntBadge').textContent = c>0 ? '오늘 '+c+'독' : '';
+}
+
+/* ═══ 달력 ═══ */
+let calY, calM, selDay=null;
+function openCal(){
+  const n=new Date(); calY=n.getFullYear(); calM=n.getMonth(); selDay=null;
+  if(!$('rgFrom').value){
+    $('rgFrom').value=calY+'-'+String(calM+1).padStart(2,'0')+'-01';
+    $('rgTo').value=ymd(n);
+  }
+  drawCal(); rangeStats(); $('calOverlay').classList.add('open');
+}
+function drawCal(){
+  $('calTitle').textContent=calY+'년 '+(calM+1)+'월';
+  const g=$('calGrid'); g.innerHTML='';
+  '일월화수목금토'.split('').forEach((d,i)=>{
+    const e=document.createElement('div');
+    e.className='dow'+(i===0?' sun':''); e.textContent=d; g.appendChild(e);
+  });
+  const first=new Date(calY,calM,1), start=first.getDay();
+  const dim=new Date(calY,calM+1,0).getDate();
+  const today=ymd(new Date());
+  let mDays=0, mCnt=0;
+  for(let i=0;i<start;i++){ const e=document.createElement('div'); e.className='day out'; g.appendChild(e); }
+  for(let d=1;d<=dim;d++){
+    const key=calY+'-'+String(calM+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const cnt=rlog[key]||0;
+    if(cnt>0){ mDays++; mCnt+=cnt; }
+    const e=document.createElement('div');
+    e.className='day'+(cnt>0?' done':'')+(key===today?' today':'')+(key===selDay?' sel':'');
+    e.innerHTML='<span>'+d+'</span><span class="mark">'+(cnt>0?cnt:'')+'</span>';
+    e.onclick=()=>{ selDay=key; drawCal(); };
+    g.appendChild(e);
+  }
+  let streak=0; const t=new Date();
+  for(;;){ const k=ymd(t); if((rlog[k]||0)>0){ streak++; t.setDate(t.getDate()-1); } else break; }
+  let total=0; for(const k in rlog) total+=rlog[k];
+  $('calStats').innerHTML='이번 달 <b>'+mDays+'일</b>, <b>'+mCnt+'독</b>'
+    +' · 지금까지 모두 <b>'+total+'독</b> 하셨습니다.'
+    +(streak>0? '<br>오늘까지 <b>'+streak+'일</b> 연속입니다. 🪷':'');
+  const ed=$('calEdit');
+  if(selDay){
+    ed.classList.add('open');
+    const[y,m,dd]=selDay.split('-');
+    $('calEditDate').textContent=(+m)+'월 '+(+dd)+'일';
+    $('calEditCnt').textContent=(rlog[selDay]||0)+'독';
+  }else ed.classList.remove('open');
+}
+async function adjustDay(delta){
+  if(!selDay) return;
+  const v=Math.max((rlog[selDay]||0)+delta,0);
+  if(v===0) delete rlog[selDay]; else rlog[selDay]=v;
+  await kvSet('surangama-log-v1',JSON.stringify(rlog));
+  updateCnt(); drawCal(); rangeStats();
+}
+function rangeStats(){
+  const f=$('rgFrom').value, t=$('rgTo').value, out=$('rgResult');
+  if(!f||!t){ out.innerHTML='기간을 선택해 주세요.'; return; }
+  const d1=new Date(f+'T00:00:00'), d2=new Date(t+'T00:00:00');
+  if(d1>d2){ out.innerHTML='시작일이 종료일보다 늦습니다.'; return; }
+  let cnt=0, days=0, span=0;
+  for(const d=new Date(d1); d<=d2; d.setDate(d.getDate()+1)){
+    span++;
+    const c=rlog[ymd(d)]||0;
+    if(c>0){ days++; cnt+=c; }
+  }
+  out.innerHTML=span+'일 동안 <b>'+cnt+'독</b> 하셨습니다.'
+    +'<br>독송한 날 <b>'+days+'일</b> · 하루 평균 <b>'+(days?(cnt/span).toFixed(1):0)+'독</b>';
+}
+$('btnCal').onclick=()=>{ closeMore(); openCal(); };
+$('calClose').onclick=()=>$('calOverlay').classList.remove('open');
+$('calOverlay').addEventListener('click',e=>{ if(e.target===$('calOverlay')) $('calOverlay').classList.remove('open'); });
+$('calPrev').onclick=()=>{ calM--; if(calM<0){calM=11;calY--;} selDay=null; drawCal(); };
+$('calNext').onclick=()=>{ calM++; if(calM>11){calM=0;calY++;} selDay=null; drawCal(); };
+$('calMinus').onclick=()=>adjustDay(-1);
+$('calPlus').onclick=()=>adjustDay(1);
+$('rgFrom').onchange=rangeStats;
+$('rgTo').onchange=rangeStats;
+
+render(); updateTime();
+restoreAudio();
+loadSet(); loadLog();
+</script>
+</body>
+</html>
