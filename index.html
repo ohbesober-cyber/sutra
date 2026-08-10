@@ -437,7 +437,7 @@ const DEFAULT_TEXT = `# 백산개다라니 白傘蓋陀羅尼
 나모- 데-바르씨남
 나맣. 싣다. 비댜-다-라르씨남
 쌰-빠-누그라하 사마르타-남
-나모- 브라흻마네
+나모- 브라헒마네
 나맣. 인드라-야
 나모- 바까바떼- 루드라-야
 우마~빠띠사 히~야-야-
@@ -452,7 +452,7 @@ const DEFAULT_TEXT = `# 백산개다라니 白傘蓋陀羅尼
 나모- 바까바떼- 파뜨마.꿀라-야
 나모- 바까바떼- 와즈라꿀라-야
 나모- 바까바떼- 마r니꿀라-야
-나모- 바까바떼- 간짜꿀라-야
+나모- 바까바떼- 갇짜꿀라-야
 나모- 바까바떼- 글다슈~라-쎼-나
 프라하얼나라~자~야
 탙하-가따-야~아르하떼- 사먁삼붇하-야
@@ -471,7 +471,7 @@ const DEFAULT_TEXT = `# 백산개다라니 白傘蓋陀羅尼
 나모- 바까바떼- 라트나꾸수마
 께~뚜라-자~야 탙하-가따-
 야~아르하떼- 사먁삼붇하-야
-떼-샴- 나.마 스크리쁘와 이맘~
+떼-샴- 나.마 스크리뜨와 이맘~
 바까바타 스탙하-가또-스니~샴
 시따-따빠뜨람 나마-빠라-지땀
 쁘라땽-기람
@@ -485,7 +485,7 @@ const DEFAULT_TEXT = `# 백산개다라니 白傘蓋陀羅尼
 아스쨔-빔 샤띠남- 낙챠뜨라r~남-
 부르싸-다나카림-
 아스쨔-남- 마하-그라하r~남-
-븨드밤사나카림-
+븨드밤사나까림-
 사르와 샤뜨루-니바-라r-님
 고-람 둡쌉나-남~차 나-샤님
 비사샤스뜨라 아그니 우따라r님
@@ -566,7 +566,7 @@ const DEFAULT_TEXT = `# 백산개다라니 白傘蓋陀羅尼
 라-자단r다 바야-
 수쁘라r니 바야-
 나-가 바야-
-비뜢. 바야-
+비뜟. 바야-
 데-봐 그라하-
 나-가 그라하-
 약챠 그라하-
@@ -681,7 +681,7 @@ const DEFAULT_TEXT = `# 백산개다라니 白傘蓋陀羅尼
 마하-까-라-야 마하- 마-트리가r나
 나마스크리따-야 팥.
 베-스누비-예- 팥.
-브라흻니-예- 팥.
+브라헒니-예- 팥.
 아그니-예- 팥.
 마하-까-리-예- 팥.
 까r-라단r디-예- 팥.
@@ -944,7 +944,8 @@ $('btnRestart').onclick=()=>{
   scrollEl.scrollTo({top:0});
   if(!playing) btnPlay.textContent='독송 시작';
 };
-btnLoop.onclick=()=>{ loop=!loop; btnLoop.classList.toggle('on',loop); };
+btnLoop.onclick=()=>{ loop=!loop; btnLoop.classList.toggle('on',loop);
+  if(typeof setg!=='undefined'){ setg.loop=loop; saveSet(); } };
 $('btnMore').onclick=()=>{
   const o=$('more').classList.toggle('open');
   $('btnMore').classList.toggle('on',o);
@@ -967,6 +968,7 @@ document.querySelectorAll('.spd').forEach(b=>{
     rate=parseFloat(b.dataset.r);
     audio.playbackRate=rate;
     document.querySelectorAll('.spd').forEach(x=>x.classList.toggle('on',x===b));
+    if(typeof setg!=='undefined'){ setg.rate=rate; saveSet(); }
   };
 });
 audio.addEventListener('play',()=>{ audio.playbackRate=rate; });
@@ -1172,6 +1174,7 @@ $('durInput').onchange=e=>{
   const m=e.target.value.trim().match(/^(\d+)(?::([0-5]?\d))?$/);
   if(m){ manualDur=(+m[1])*60+(+(m[2]||0)); if(!m[2]&&+m[1]<10) manualDur=+m[1]*60; }
   if(manualDur<5) manualDur=5;
+  if(typeof setg!=='undefined'){ setg.dur=manualDur; saveSet(); }
   useAudio=false; audio.removeAttribute('src'); $('fileName').textContent='';
   $('btnSync').disabled=true; sync=null; setBadge();
   manualT=0; paint(0); updateTime(); stop(false); btnPlay.textContent='독송 시작';
@@ -1179,6 +1182,7 @@ $('durInput').onchange=e=>{
 
 /* ── 글자 크기 ── */
 $('fontSize').oninput=e=>textEl.style.setProperty('--fs',e.target.value+'rem');
+$('fontSize').onchange=e=>{ if(typeof setg!=='undefined'){ setg.fs=parseFloat(e.target.value); saveSet(); } };
 
 /* ── 경문 편집 ── */
 $('btnEdit').onclick=()=>{ closeMore(); $('editArea').value=mantra; $('editor').classList.add('open'); };
@@ -1190,7 +1194,7 @@ $('editSave').onclick=()=>{
 };
 
 /* ═══ 설정(화면 켜짐·테마) ═══ */
-let setg={wake:true, theme:'night'};
+let setg={wake:true, theme:'night', rate:1, fs:2, loop:false, dur:60};
 let wakeLock=null, nsVideo=null;
 function nsVid(){
   /* https가 아닐 때(파일로 열 때)를 위한 폴백: 보이지 않는 초소형 영상 재생으로 화면 유지 시도 */
@@ -1228,6 +1232,19 @@ function applySet(){
   const b=$('btnWake');
   b.style.color=setg.wake?'var(--gold)':'';
   b.style.borderColor=setg.wake?'var(--gold)':'';
+  /* 배속 */
+  rate=parseFloat(setg.rate)||1;
+  audio.playbackRate=rate;
+  document.querySelectorAll('.spd').forEach(x=>x.classList.toggle('on',parseFloat(x.dataset.r)===rate));
+  /* 글자 크기 */
+  const fs=parseFloat(setg.fs)||2;
+  $('fontSize').value=fs;
+  textEl.style.setProperty('--fs',fs+'rem');
+  /* 반복 */
+  loop=!!setg.loop;
+  btnLoop.classList.toggle('on',loop);
+  /* 소요 시간(음원 없을 때) */
+  if(setg.dur>=5){ manualDur=setg.dur; if(!useAudio) $('durInput').value=fmt(manualDur); }
 }
 async function saveSet(){ await kvSet('surangama-set-v1',JSON.stringify(setg)); }
 async function loadSet(){
