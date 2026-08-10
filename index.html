@@ -264,6 +264,15 @@
     border:1px solid var(--line);border-radius:8px;padding:8px;font-size:.85rem;
   }
 
+  #toast{
+    position:fixed;left:50%;bottom:120px;transform:translateX(-50%);
+    background:var(--indigo-panel);border:1px solid var(--gold);color:var(--gold-bright);
+    padding:9px 18px;border-radius:24px;font-size:.85rem;letter-spacing:.05em;
+    opacity:0;pointer-events:none;transition:opacity .3s;z-index:40;white-space:nowrap;
+  }
+  #toast.show{opacity:1;}
+  #rangeBox .rrow{flex-wrap:wrap;}
+
   @media (prefers-reduced-motion:reduce){
     #scroll{scroll-behavior:auto;}
     #text .ch{transition:none;}
@@ -296,6 +305,7 @@
 
   <div class="row">
     <span id="timeLabel">0:00 / 0:00</span>
+    <button id="btnPlusRead">📿 1독</button>
     <button id="btnCal">달력</button>
     <span id="cntBadge"></span>
     <span id="syncBadge"></span>
@@ -314,13 +324,18 @@
     <button id="btnSyncImport">싱크 가져오기</button>
   </div>
 
-  <div class="row">
+  <div class="row" style="row-gap:6px;">
     <label class="small">배속</label>
-    <button class="spd" data-r="0.75">0.75×</button>
+    <button class="spd" data-r="0.5">0.5×</button>
     <button class="spd on" data-r="1">1×</button>
-    <button class="spd" data-r="1.25">1.25×</button>
     <button class="spd" data-r="1.5">1.5×</button>
     <button class="spd" data-r="2">2×</button>
+    <button class="spd" data-r="2.5">2.5×</button>
+    <button class="spd" data-r="3">3×</button>
+    <button class="spd" data-r="3.5">3.5×</button>
+    <button class="spd" data-r="4">4×</button>
+    <button class="spd" data-r="4.5">4.5×</button>
+    <button class="spd" data-r="5">5×</button>
   </div>
 
   <div class="row">
@@ -375,10 +390,17 @@
       <div class="rrow"><input type="date" id="rgFrom"> ~ <input type="date" id="rgTo"></div>
       <div id="rgResult"></div>
     </div>
+    <div class="rrow" style="margin-top:12px;">
+      <button id="btnLogExport">기록 내보내기</button>
+      <button id="btnLogImport">기록 가져오기</button>
+      <button id="btnLogImage">🖼 이미지 저장</button>
+    </div>
   </div>
   <button id="calClose">닫기</button>
 </div>
 
+<input type="file" id="logFile" accept="application/json,.json" hidden>
+<div id="toast"></div>
 <input type="file" id="audioFile" accept="audio/*,video/mp4" hidden>
 <input type="file" id="syncFile" accept="application/json,.json" hidden>
 <audio id="audio" hidden></audio>
@@ -929,6 +951,15 @@ $('btnMore').onclick=()=>{
 };
 $('moreClose').onclick=()=>{ $('more').classList.remove('open'); $('btnMore').classList.remove('on'); };
 function closeMore(){ $('more').classList.remove('open'); $('btnMore').classList.remove('on'); }
+document.addEventListener('pointerdown',e=>{
+  if($('more').classList.contains('open')
+     && !e.target.closest('#more') && !e.target.closest('#btnMore')) closeMore();
+});
+let toastTimer=null;
+function toast(msg){
+  const t=$('toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),2200);
+}
 
 /* ── 배속 ── */
 document.querySelectorAll('.spd').forEach(b=>{
@@ -1221,7 +1252,9 @@ async function countRead(){
   rlog[t]=(rlog[t]||0)+1;
   await kvSet('surangama-log-v1',JSON.stringify(rlog));
   updateCnt();
+  toast('🪷 오늘 '+rlog[t]+'독 회향');
 }
+$('btnPlusRead').onclick=()=>countRead();
 function updateCnt(){
   const c=rlog[ymd(new Date())]||0;
   $('cntBadge').textContent = c>0 ? '오늘 '+c+'독' : '';
@@ -1303,6 +1336,112 @@ $('calMinus').onclick=()=>adjustDay(-1);
 $('calPlus').onclick=()=>adjustDay(1);
 $('rgFrom').onchange=rangeStats;
 $('rgTo').onchange=rangeStats;
+
+/* ═══ 기록 내보내기/가져오기 ═══ */
+$('btnLogExport').onclick=()=>{
+  const blob=new Blob([JSON.stringify({app:'surangama',exported:ymd(new Date()),log:rlog},null,1)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='능엄주_독송기록_'+ymd(new Date())+'.json';
+  a.click(); URL.revokeObjectURL(a.href);
+  toast('기록을 내보냈습니다');
+};
+$('btnLogImport').onclick=()=>$('logFile').click();
+$('logFile').onchange=e=>{
+  const f=e.target.files[0]; e.target.value=''; if(!f) return;
+  const r=new FileReader();
+  r.onload=async()=>{
+    try{
+      const d=JSON.parse(r.result);
+      const src=d.log&&typeof d.log==='object'?d.log:d;
+      const clean={};
+      for(const k in src){
+        if(/^\d{4}-\d{2}-\d{2}$/.test(k) && Number.isFinite(+src[k]) && +src[k]>0)
+          clean[k]=Math.floor(+src[k]);
+      }
+      if(!Object.keys(clean).length) throw 0;
+      const merge=confirm('기존 기록과 합치시겠습니까?\n\n[확인] 합치기 (같은 날은 큰 값 유지)\n[취소] 파일 내용으로 완전히 대체');
+      if(merge){ for(const k in clean) rlog[k]=Math.max(rlog[k]||0,clean[k]); }
+      else rlog=clean;
+      await kvSet('surangama-log-v1',JSON.stringify(rlog));
+      updateCnt(); drawCal(); rangeStats();
+      toast('기록을 불러왔습니다');
+    }catch(err){ alert('기록 파일을 읽을 수 없습니다.'); }
+  };
+  r.readAsText(f);
+};
+
+/* ═══ 기록 이미지 저장 ═══ */
+$('btnLogImage').onclick=async()=>{
+  try{ await document.fonts.ready; }catch(e){}
+  const W=900,H=1200;
+  const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
+  const x=cv.getContext('2d');
+  const bg=x.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#1a2140'); bg.addColorStop(.5,'#10152a'); bg.addColorStop(1,'#0c1022');
+  x.fillStyle=bg; x.fillRect(0,0,W,H);
+  x.strokeStyle='rgba(232,193,90,.5)'; x.lineWidth=2;
+  x.strokeRect(34,34,W-68,H-68);
+  x.strokeStyle='rgba(232,193,90,.25)'; x.lineWidth=1;
+  x.strokeRect(44,44,W-88,H-88);
+  const gold='#e8c15a', bright='#f6d98a', dim='#8d97bd';
+  x.textAlign='center';
+  x.fillStyle=bright;
+  x.font='700 64px "Noto Serif KR",serif';
+  x.fillText('수 능 엄 신 주',W/2,150);
+  x.fillStyle=dim; x.font='26px "Noto Serif KR",serif';
+  x.fillText('首楞嚴神呪 · 독송 기록',W/2,196);
+  const n=new Date();
+  x.fillText(n.getFullYear()+'년 '+(n.getMonth()+1)+'월 '+n.getDate()+'일',W/2,236);
+  let total=0; for(const k in rlog) total+=rlog[k];
+  x.fillStyle=gold; x.font='700 130px "Gowun Batang","Noto Serif KR",serif';
+  x.fillText(total+'독',W/2,400);
+  const gy=470;
+  x.fillStyle=bright; x.font='600 30px "Noto Serif KR",serif';
+  x.fillText(calY+'년 '+(calM+1)+'월',W/2,gy);
+  const cell=100, gx0=(W-cell*7)/2, gy0=gy+30;
+  x.font='22px "Gowun Batang",serif';
+  '일월화수목금토'.split('').forEach((d,i)=>{
+    x.fillStyle=i===0?'#c97b7b':dim;
+    x.fillText(d,gx0+cell*i+cell/2,gy0+26);
+  });
+  const first=new Date(calY,calM,1).getDay();
+  const dim2=new Date(calY,calM+1,0).getDate();
+  let mDays=0,mCnt=0;
+  for(let d=1; d<=dim2; d++){
+    const col=(first+d-1)%7, row=Math.floor((first+d-1)/7);
+    const cx=gx0+cell*col+cell/2, cy=gy0+64+row*74;
+    const key=calY+'-'+String(calM+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const c=rlog[key]||0;
+    if(c>0){
+      mDays++; mCnt+=c;
+      x.beginPath(); x.arc(cx,cy-8,26,0,7);
+      x.fillStyle='rgba(232,193,90,.16)'; x.fill();
+      x.strokeStyle=gold; x.lineWidth=1.5; x.stroke();
+      x.fillStyle=bright; x.font='600 24px "Gowun Batang",serif';
+      x.fillText(String(d),cx,cy-14);
+      x.fillStyle=gold; x.font='600 18px "Gowun Batang",serif';
+      x.fillText(c+'독',cx,cy+10);
+    }else{
+      x.fillStyle='rgba(141,151,189,.4)'; x.font='24px "Gowun Batang",serif';
+      x.fillText(String(d),cx,cy);
+    }
+  }
+  let streak=0; const tt=new Date();
+  for(;;){ const k=ymd(tt); if((rlog[k]||0)>0){ streak++; tt.setDate(tt.getDate()-1); } else break; }
+  const sy=gy0+64+6*74+30;
+  x.fillStyle=dim; x.font='28px "Gowun Batang",serif';
+  x.fillText('이번 달 '+mDays+'일 · '+mCnt+'독'+(streak>0?'  |  '+streak+'일 연속 정진':''),W/2,sy);
+  x.fillStyle='rgba(232,193,90,.7)'; x.font='30px serif';
+  x.fillText('🪷',W/2,H-90);
+  cv.toBlob(b=>{
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(b);
+    a.download='능엄주_독송기록_'+calY+'_'+String(calM+1).padStart(2,'0')+'.png';
+    a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+  },'image/png');
+  toast('🖼 기록 이미지를 저장합니다');
+};
 
 render(); updateTime();
 restoreAudio();
